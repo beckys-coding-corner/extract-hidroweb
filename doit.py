@@ -11,22 +11,32 @@ if __name__ == '__main__':
 
     download_prefix = 'https://www.snirh.gov.br/hidroweb/rest/api/documento/convencionais?tipo=2&documentos='
 
+    id_list = dict()
     for page in range(estações_convencionais_entries//elements_per_page):
-        target_file = f'conventional_data_{page}.zip'
-        if not os.path.exists(target_file):
-            url = f'{estações_convencionais_url}{page}'
-            contents = requests.get(url).json()
-            id_list = [entry['id'] for entry in contents['content']]
-            download_url = (
-                'https://www.snirh.gov.br/hidroweb/rest/api/documento/convencionais?tipo=2&documentos=' +
-                ','.join([x for x in id_list]))
+        # target_file = f'conventional_data_{page}.zip'
+        # if not os.path.exists(target_file):
+        print(page)
+        url = f'{estações_convencionais_url}{page}'
+        contents = requests.get(url).json()
+        id_list.update({
+            entry['id']: (entry['longitude'], entry['latitude'])
+            for entry in contents['content']})
+        # break
+        # download_url = (
+        #     'https://www.snirh.gov.br/hidroweb/rest/api/documento/convencionais?tipo=2&documentos=' +
+        #     ','.join([x for x in id_list]))
 
-            print(download_prefix)
-            result = requests.get(download_url)
-            if not result:
-                print(f'error! {result}')
-                break
-            print(f'downloading {target_file}')
-            with open(f'conventional_data_{page}.zip', 'wb') as fd:
-                fd.write(result.content)
-            print(f'done with {target_file}')
+        # print(download_prefix)
+        # result = requests.get(download_url)
+        # print(result.status_code)
+        # if not result.ok:
+        #     print(f'error! {result}')
+        #     break
+        # print(f'downloading {target_file}')
+        # with open(f'conventional_data_{page}.zip', 'wb') as fd:
+        #     fd.write(result.content)
+        # print(f'done with {target_file}')
+    with open('coords.csv', 'w') as coords_file:
+        for key in sorted(id_list):
+            coords_file.write(
+                f'{key},{id_list[key][0]},{id_list[key][1]}\n')
